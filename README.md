@@ -52,13 +52,11 @@ This section assumes that you're using the command-line version of Git.
 ***
 
 #### Compile LunatriusCore
-1. Execute `gradlew setupDevWorkspace`. This sets up Forge and downloads the necessary libraries to build LunatriusCore. This might take some time, be patient.
-    * You will generally only have to do this once until the Forge version in `gradle.properties` changes.
-2. Execute `gradlew build`. If you did everything right, `BUILD SUCCESSFUL` will be displayed after it finishes. This should be relatively quick.
+1. Execute `gradlew build`. If you did everything right, `BUILD SUCCESSFUL` will be displayed after it finishes. This should be relatively quick.
     * If you see `BUILD FAILED`, check the error output (it should be right around `BUILD FAILED`), fix everything (if possible), and try again.
-3. Go to `mcdev\LunatriusCore\build\libs`.
+2. Go to `mcdev\LunatriusCore\build\libs`.
     * You should see a `.jar` file named `LunatriusCore-#.#.#-#.#.#.#-universal.jar`.
-4. Copy the jar into your Minecraft mods folder, and you are done!
+3. Copy the jar into your Minecraft mods folder, and you are done!
 
 #### Updating Your Repository
 In order to get the most up-to-date builds, you'll have to periodically update your local repository.

@@ -16,12 +16,12 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
         classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.0.9'
     }
 }
 
-apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'com.matthewprenger.cursegradle'
 
 ext.build = System.getenv().BUILD_NUMBER ?: 'git'
@@ -30,38 +30,36 @@ ext.modversion = "${project.version_major}.${project.version_minor}.${project.ve
 group = 'com.github.lunatrius'
 version = "${project.version_minecraft}-${modversion}"
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
-
-compileJava {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
-
-    options.encoding = 'UTF-8'
-}
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = JavaVersion.VERSION_1_8
+compileJava.options.encoding = 'UTF-8'
 
 minecraft {
-    version = "${project.version_minecraft}-${project.version_forge}"
+    mappings channel: "snapshot", version: "${project.version_mappings}"
 
-    if (project.hasProperty('version_mappings'))
-        mappings = project.version_mappings
+    ant.replaceregexp(file: "./src/main/java/com/github/lunatrius/core/reference/Reference.java", match: "gradle-version", replace: modversion)
+    ant.replaceregexp(file: "./src/main/java/com/github/lunatrius/core/reference/Reference.java", match: "gradle-mcversion", replace: project.version_minecraft)
+    ant.replaceregexp(file: "./src/main/java/com/github/lunatrius/core/reference/Reference.java", match: "gradle-forgeversion", replace: project.version_forge)
 
-    if (!project.hasProperty('run_location'))
-        runDir = 'run'
-    else
-        runDir = run_location.replace('{modid}', project.name).replace('{mcversion}', project.version_minecraft)
-
-    replaceIn 'reference/Reference.java'
-    replace '${version}', modversion
-    replace '${mcversion}', project.version_minecraft
-    replace '${forgeversion}', project.version_forge
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+        }
+        server {
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+            property 'forge.logging.console.level', 'debug'
+        }
+    }
 }
 
-processResources {
-    // this will ensure that this task is redone when the versions change.
-    inputs.property 'version', project.version
-    inputs.property 'mcversion', project.minecraft.version
+dependencies {
+    minecraft "net.minecraftforge:forge:${project.version_minecraft}-${project.version_forge}"
+}
 
+// this will ensure that this task is redone when the versions change.
+processResources.outputs.upToDateWhen { false }
+processResources {
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
 
@@ -91,7 +89,7 @@ jar {
 }
 
 artifacts {
-    archives sourceJar
+    archives jar
 }
 
 if (!project.hasProperty('keystore_location'))
