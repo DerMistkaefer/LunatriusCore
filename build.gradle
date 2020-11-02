@@ -36,10 +36,6 @@ compileJava.options.encoding = 'UTF-8'
 minecraft {
     mappings channel: "snapshot", version: "${project.version_mappings}"
 
-    ant.replaceregexp(file: "./src/main/java/com/github/lunatrius/core/reference/Reference.java", match: "gradle-version", replace: modversion)
-    ant.replaceregexp(file: "./src/main/java/com/github/lunatrius/core/reference/Reference.java", match: "gradle-mcversion", replace: project.version_minecraft)
-    ant.replaceregexp(file: "./src/main/java/com/github/lunatrius/core/reference/Reference.java", match: "gradle-forgeversion", replace: project.version_forge)
-
     runs {
         client {
             workingDirectory project.file('run')
@@ -56,6 +52,7 @@ minecraft {
 dependencies {
     minecraft "net.minecraftforge:forge:${project.version_minecraft}-${project.version_forge}"
 }
+import org.apache.tools.ant.filters.ReplaceTokens
 
 // this will ensure that this task is redone when the versions change.
 processResources.outputs.upToDateWhen { false }
@@ -76,6 +73,28 @@ processResources {
         exclude 'mcmod.info'
     }
 }
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+            exclude 'com/github/lunatrius/core/reference/Reference.java'
+        }
+    }
+}
+
+task generateSources(type: Copy) {
+    from 'src/main/java/com/github/lunatrius/core/reference/Reference.java'
+    into "$buildDir/generated-src/com/github/lunatrius/core/reference"
+    filter(ReplaceTokens, tokens: [
+            'version': modversion.toString(),
+            'mcversion': project.version_minecraft,
+            'forgeversion': project.version_forge,
+    ])
+}
+// the following lines are important to wire the task in with the compileJava task
+compileJava.source "$buildDir/generated-src"
+compileJava.dependsOn generateSources
 
 def commonManifest = {
     if (project.hasProperty('extra_fmlat')) {
